@@ -168,7 +168,7 @@
   .toolbar-button {
     @apply rounded p-1 hover:bg-black/5 transition-colors flex items-center justify-center;
     height: 28px;
-    width: 28px;
+    min-width: 28px;
   }
   
   .toolbar-button.active {
@@ -182,6 +182,12 @@
   .toolbar-select {
     @apply text-sm bg-transparent border border-sheet-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary;
     height: 28px;
+  }
+
+  .color-circle {
+    @apply rounded-full border border-gray-300 hover:border-gray-400 cursor-pointer;
+    width: 24px;
+    height: 24px;
   }
 }
 
@@ -197,4 +203,18 @@
 
 .formula-highlight {
   @apply bg-blue-100 text-blue-800;
+}
+
+.color-palette {
+  @apply p-2 bg-white shadow-lg rounded-md border border-gray-200 absolute z-50;
+  width: 240px;
+}
+
+.color-palette-grid {
+  @apply grid gap-1;
+  grid-template-columns: repeat(10, 1fr);
+}
+
+.color-palette-circle {
+  @apply flex flex-wrap justify-center gap-1 mt-2 pt-2 border-t border-gray-100;
 }
