@@ -1,5 +1,6 @@
 
-# Sheetopia - Spreadsheet Application
+# Web-Application-Mimicking-Google-Sheets
+
 
 A web-based spreadsheet application that mimics the core functionalities of Google Sheets, with a focus on mathematical and data quality functions.
 # Screenshots:-
