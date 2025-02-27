@@ -27,21 +27,20 @@ export const evaluateFormula = (
     const functionName = functionMatch[1];
     const params = functionMatch[2];
     
-    // Parse parameters - simple split by comma for now
-    // This will need to be improved for nested functions and more complex cases
-    const parameters = params.split(",").map(param => param.trim());
+    // Parse parameters - improved to handle both ranges and comma-separated values
+    const parameters = parseParameters(params);
     
     switch (functionName) {
       case "SUM":
-        return sum(extractRange(parameters[0], data));
+        return sum(extractValues(parameters, data));
       case "AVERAGE":
-        return average(extractRange(parameters[0], data));
+        return average(extractValues(parameters, data));
       case "MAX":
-        return max(extractRange(parameters[0], data));
+        return max(extractValues(parameters, data));
       case "MIN":
-        return min(extractRange(parameters[0], data));
+        return min(extractValues(parameters, data));
       case "COUNT":
-        return count(extractRange(parameters[0], data));
+        return count(extractValues(parameters, data));
       case "TRIM":
         if (parameters.length === 1) {
           const cellRef = parseCellReference(parameters[0]);
@@ -76,6 +75,65 @@ export const evaluateFormula = (
     console.error("Formula evaluation error:", error);
     return "Error: Formula evaluation failed";
   }
+};
+
+/**
+ * Parses a comma-separated parameter list and handles nested parentheses.
+ */
+export const parseParameters = (paramStr: string): string[] => {
+  const params: string[] = [];
+  let currentParam = '';
+  let parenCount = 0;
+  
+  for (let i = 0; i < paramStr.length; i++) {
+    const char = paramStr[i];
+    
+    if (char === '(') {
+      parenCount++;
+      currentParam += char;
+    } else if (char === ')') {
+      parenCount--;
+      currentParam += char;
+    } else if (char === ',' && parenCount === 0) {
+      params.push(currentParam.trim());
+      currentParam = '';
+    } else {
+      currentParam += char;
+    }
+  }
+  
+  if (currentParam.trim() !== '') {
+    params.push(currentParam.trim());
+  }
+  
+  return params;
+};
+
+/**
+ * Extracts values from comma-separated parameters that can be either ranges or single cells.
+ */
+export const extractValues = (params: string[], data: CellValue[][]): CellValue[] => {
+  const values: CellValue[] = [];
+  
+  params.forEach(param => {
+    if (param.includes(':')) {
+      // It's a range like A1:B3
+      const range = extractRange(param, data);
+      range.forEach(row => {
+        row.forEach(cell => {
+          values.push(cell);
+        });
+      });
+    } else {
+      // It's a single cell like A1
+      const cellRef = parseCellReference(param);
+      if (cellRef && data[cellRef.row] && data[cellRef.row][cellRef.col] !== undefined) {
+        values.push(data[cellRef.row][cellRef.col]);
+      }
+    }
+  });
+  
+  return values;
 };
 
 /**
@@ -168,19 +226,17 @@ export const extractRange = (rangeStr: string, data: CellValue[][]): CellRange =
 /**
  * Calculates the sum of values in a range.
  */
-export const sum = (range: CellRange): number => {
+export const sum = (values: CellValue[]): number => {
   let total = 0;
-  range.forEach(row => {
-    row.forEach(cell => {
-      if (typeof cell === 'number') {
-        total += cell;
-      } else if (typeof cell === 'string') {
-        const num = parseFloat(cell);
-        if (!isNaN(num)) {
-          total += num;
-        }
+  values.forEach(cell => {
+    if (typeof cell === 'number') {
+      total += cell;
+    } else if (typeof cell === 'string') {
+      const num = parseFloat(cell);
+      if (!isNaN(num)) {
+        total += num;
       }
-    });
+    }
   });
   return total;
 };
@@ -188,32 +244,30 @@ export const sum = (range: CellRange): number => {
 /**
  * Calculates the average of values in a range.
  */
-export const average = (range: CellRange): number => {
-  const total = sum(range);
-  const count = countNumbers(range);
+export const average = (values: CellValue[]): number => {
+  const total = sum(values);
+  const count = countNumbers(values);
   return count > 0 ? total / count : 0;
 };
 
 /**
  * Finds the maximum value in a range.
  */
-export const max = (range: CellRange): number => {
+export const max = (values: CellValue[]): number => {
   let maxVal = Number.NEGATIVE_INFINITY;
   let found = false;
   
-  range.forEach(row => {
-    row.forEach(cell => {
-      if (typeof cell === 'number') {
-        maxVal = Math.max(maxVal, cell);
+  values.forEach(cell => {
+    if (typeof cell === 'number') {
+      maxVal = Math.max(maxVal, cell);
+      found = true;
+    } else if (typeof cell === 'string') {
+      const num = parseFloat(cell);
+      if (!isNaN(num)) {
+        maxVal = Math.max(maxVal, num);
         found = true;
-      } else if (typeof cell === 'string') {
-        const num = parseFloat(cell);
-        if (!isNaN(num)) {
-          maxVal = Math.max(maxVal, num);
-          found = true;
-        }
       }
-    });
+    }
   });
   
   return found ? maxVal : 0;
@@ -222,23 +276,21 @@ export const max = (range: CellRange): number => {
 /**
  * Finds the minimum value in a range.
  */
-export const min = (range: CellRange): number => {
+export const min = (values: CellValue[]): number => {
   let minVal = Number.POSITIVE_INFINITY;
   let found = false;
   
-  range.forEach(row => {
-    row.forEach(cell => {
-      if (typeof cell === 'number') {
-        minVal = Math.min(minVal, cell);
+  values.forEach(cell => {
+    if (typeof cell === 'number') {
+      minVal = Math.min(minVal, cell);
+      found = true;
+    } else if (typeof cell === 'string') {
+      const num = parseFloat(cell);
+      if (!isNaN(num)) {
+        minVal = Math.min(minVal, num);
         found = true;
-      } else if (typeof cell === 'string') {
-        const num = parseFloat(cell);
-        if (!isNaN(num)) {
-          minVal = Math.min(minVal, num);
-          found = true;
-        }
       }
-    });
+    }
   });
   
   return found ? minVal : 0;
@@ -247,22 +299,20 @@ export const min = (range: CellRange): number => {
 /**
  * Counts numeric values in a range.
  */
-export const count = (range: CellRange): number => {
-  return countNumbers(range);
+export const count = (values: CellValue[]): number => {
+  return countNumbers(values);
 };
 
 /**
  * Helper to count the number of numeric cells in a range.
  */
-const countNumbers = (range: CellRange): number => {
+const countNumbers = (values: CellValue[]): number => {
   let count = 0;
   
-  range.forEach(row => {
-    row.forEach(cell => {
-      if (typeof cell === 'number' || (typeof cell === 'string' && !isNaN(parseFloat(cell)))) {
-        count++;
-      }
-    });
+  values.forEach(cell => {
+    if (typeof cell === 'number' || (typeof cell === 'string' && !isNaN(parseFloat(cell)))) {
+      count++;
+    }
   });
   
   return count;

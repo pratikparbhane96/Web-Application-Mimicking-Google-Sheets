@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import Cell from './Cell';
 import FormulaBar from './FormulaBar';
 import Toolbar from './Toolbar';
@@ -28,7 +28,7 @@ const DEFAULT_ROW_HEIGHT = 24;
 const MIN_ROWS = 50;
 const MIN_COLS = 26;
 
-const Spreadsheet: React.FC = () => {
+const Spreadsheet = forwardRef<any, {}>((props, ref) => {
   const [data, setData] = useState<SpreadsheetData>(
     createEmptySpreadsheet(MIN_ROWS, MIN_COLS)
   );
@@ -45,6 +45,18 @@ const Spreadsheet: React.FC = () => {
   
   const columnHeaders = generateColumnHeaders(data.numCols);
   const rowHeaders = generateRowHeaders(data.numRows);
+  
+  // Expose methods for parent components
+  useImperativeHandle(ref, () => ({
+    getSpreadsheetData: () => data,
+    loadSpreadsheetData: (newData: SpreadsheetData) => {
+      setData(newData);
+      setSelectedCell(null);
+      setEditingCell(null);
+      setFormulaValue('');
+      setCurrentFormat({});
+    }
+  }));
   
   // Update formula bar value when selected cell changes
   useEffect(() => {
@@ -200,6 +212,7 @@ const Spreadsheet: React.FC = () => {
         setEditingCell(null);
         
         // Restore previous value
+        const cell = getCell(data, row, col);
         setFormulaValue(cell.formula || cell.value === null ? '' : String(cell.value));
       }
     } else if (!editingCell) {
@@ -355,9 +368,42 @@ const Spreadsheet: React.FC = () => {
     };
   }, [isResizing, resizingCol, dragStart]);
   
-  const cell = selectedCell 
-    ? getCell(data, selectedCell.row, selectedCell.col) 
-    : { value: null };
+  // Re-evaluate all formulas when data changes
+  useEffect(() => {
+    const evaluateAllFormulas = () => {
+      let updatedData = { ...data };
+      Object.keys(data.cells).forEach(key => {
+        const [row, col] = key.split(',').map(Number);
+        const cell = data.cells[key];
+        
+        if (cell.formula) {
+          try {
+            const cellsArray = getCellsAs2DArray(updatedData);
+            const result = evaluateFormula(cell.formula, cellsArray, row, col);
+            
+            updatedData = setCell(
+              updatedData,
+              row,
+              col,
+              result,
+              cell.formula
+            );
+          } catch (error) {
+            console.error(`Error evaluating formula in cell [${row}, ${col}]:`, error);
+          }
+        }
+      });
+      
+      if (JSON.stringify(updatedData) !== JSON.stringify(data)) {
+        setData(updatedData);
+      }
+    };
+    
+    // Evaluate all formulas on initial load
+    if (Object.keys(data.cells).some(key => data.cells[key].formula)) {
+      evaluateAllFormulas();
+    }
+  }, []);
   
   return (
     <div className="spreadsheet-container animate-fade-in">
@@ -447,6 +493,8 @@ const Spreadsheet: React.FC = () => {
       </div>
     </div>
   );
-};
+});
+
+Spreadsheet.displayName = 'Spreadsheet';
 
 export default Spreadsheet;

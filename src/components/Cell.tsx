@@ -38,8 +38,18 @@ const Cell: React.FC<CellProps> = ({
   useEffect(() => {
     if (isEditing && cellRef.current) {
       cellRef.current.focus();
+      
+      // Position cursor at the end of text
+      const range = document.createRange();
+      const sel = window.getSelection();
+      if (cellRef.current.childNodes[0]) {
+        range.setStart(cellRef.current.childNodes[0], cellValue.length);
+        range.collapse(true);
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      }
     }
-  }, [isEditing]);
+  }, [isEditing, cellValue]);
   
   const handleClick = () => {
     onSelect(row, col);
