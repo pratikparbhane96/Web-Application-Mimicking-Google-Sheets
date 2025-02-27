@@ -2,8 +2,17 @@
 # Sheetopia - Spreadsheet Application
 
 A web-based spreadsheet application that mimics the core functionalities of Google Sheets, with a focus on mathematical and data quality functions.
+# Screenshots:-
 ![Screenshot 2025-02-27 225757](https://github.com/user-attachments/assets/e2184e36-c733-4765-adad-259242c466bf)
 ![Screenshot 2025-02-27 225827](https://github.com/user-attachments/assets/76601b55-9bc0-4cbb-b536-22d1e79e08ad)
+# Colour Palet :
+![Screenshot 2025-02-27 234123](https://github.com/user-attachments/assets/b9ce4f08-e544-4274-a2b2-379134791130)
+# Data visualization capabilities (e.g., charts, graphs).
+![Screenshot 2025-02-27 234142](https://github.com/user-attachments/assets/97be2b03-6789-41bb-b896-062e495375af)
+# Operations:- 
+![Screenshot 2025-02-27 235054](https://github.com/user-attachments/assets/f7401381-7a18-4281-ae09-2a67ac7b2493)
+![Screenshot 2025-02-27 235111](https://github.com/user-attachments/assets/4fcef119-1fce-4870-8d50-66bfc0debae1)
+
 
 ## Features
 
