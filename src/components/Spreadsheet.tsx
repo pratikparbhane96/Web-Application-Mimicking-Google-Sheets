@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import Cell from './Cell';
 import FormulaBar from './FormulaBar';
@@ -29,6 +28,7 @@ const MIN_ROWS = 50;
 const MIN_COLS = 26;
 
 const Spreadsheet = forwardRef<any, {}>((props, ref) => {
+  
   const [data, setData] = useState<SpreadsheetData>(
     createEmptySpreadsheet(MIN_ROWS, MIN_COLS)
   );
@@ -453,11 +453,12 @@ const Spreadsheet = forwardRef<any, {}>((props, ref) => {
         
         <div className="relative">
           {rowHeaders.map((header, rowIndex) => (
-            <div key={`row-${rowIndex}`} className="flex">
+            <div key={`row-${rowIndex}`} className="flex" style={{ height: '24px', minHeight: '24px', maxHeight: '24px' }}>
               <div
                 className="row-header"
                 style={{
                   height: `${data.rowHeights[rowIndex] || DEFAULT_ROW_HEIGHT}px`,
+                  lineHeight: `${data.rowHeights[rowIndex] || DEFAULT_ROW_HEIGHT}px`,
                 }}
               >
                 {header}

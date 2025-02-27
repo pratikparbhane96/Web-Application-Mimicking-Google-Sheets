@@ -119,13 +119,16 @@
     min-width: 64px;
     max-width: 64px;
     z-index: 20;
+    box-sizing: border-box;
   }
   
   .row-header {
     @apply bg-sheet-header sticky left-0 text-center border-r border-b border-sheet-border text-xs font-medium text-sheet-lightText flex items-center justify-center select-none;
     width: 40px;
     min-height: 24px;
+    height: 24px;
     z-index: 20;
+    box-sizing: border-box;
   }
   
   .cell {
@@ -133,7 +136,14 @@
     height: 24px;
     min-width: 64px;
     max-width: 64px;
+    min-height: 24px;
+    max-height: 24px;
     line-height: 24px;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0 2px;
+    display: flex;
+    align-items: center;
   }
   
   .cell:focus, .cell.selected {
@@ -155,6 +165,7 @@
     width: 40px;
     height: 24px;
     z-index: 30;
+    box-sizing: border-box;
   }
   
   .drag-handle {
@@ -217,4 +228,15 @@
 
 .color-palette-circle {
   @apply flex flex-wrap justify-center gap-1 mt-2 pt-2 border-t border-gray-100;
+}
+
+/* Ensure rows are aligned properly */
+.spreadsheet-grid .flex {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 24px;
+  max-height: 24px;
+  margin: 0;
+  padding: 0;
 }

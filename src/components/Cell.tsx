@@ -69,7 +69,17 @@ const Cell: React.FC<CellProps> = ({
   // Apply formatting if available
   const style: React.CSSProperties = {
     width: `${width}px`,
+    minWidth: `${width}px`,
     maxWidth: `${width}px`,
+    height: '24px',
+    minHeight: '24px',
+    maxHeight: '24px',
+    margin: 0,
+    padding: '0 2px',
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis'
   };
   
   if (data.format) {
