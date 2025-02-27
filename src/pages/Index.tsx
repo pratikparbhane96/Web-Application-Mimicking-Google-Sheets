@@ -1,15 +1,38 @@
-
 import React, { useRef, useState } from 'react';
 import Spreadsheet from '../components/Spreadsheet';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
 import { useToast } from '../hooks/use-toast';
 
 const Index = () => {
   const [documentName, setDocumentName] = useState('Untitled Spreadsheet');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const spreadsheetRef = useRef<any>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const handleRenameClick = () => {
+    setIsEditingTitle(true);
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+      titleInputRef.current?.select();
+    }, 0);
+  };
+
+  const handleRenameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsEditingTitle(false);
+  };
+
+  const handleRenameBlur = () => {
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDocumentName(e.target.value);
+  };
 
   const handleSaveSpreadsheet = () => {
     if (!spreadsheetRef.current) return;
@@ -110,9 +133,25 @@ const Index = () => {
           <h1 className="text-lg font-medium">Spreadsheet</h1>
         </div>
         <div className="flex-1 flex justify-center">
-          <div className="bg-white/20 rounded-full px-4 py-1 text-sm font-medium">
-            {documentName}
-          </div>
+          {isEditingTitle ? (
+            <form onSubmit={handleRenameSubmit} className="flex items-center">
+              <Input
+                ref={titleInputRef}
+                type="text"
+                value={documentName}
+                onChange={handleTitleChange}
+                onBlur={handleRenameBlur}
+                className="bg-white/20 rounded-full px-4 py-1 text-sm font-medium text-white w-64 focus:outline-none focus:ring-2 focus:ring-white/30"
+              />
+            </form>
+          ) : (
+            <button
+              onClick={handleRenameClick}
+              className="bg-white/20 hover:bg-white/30 transition-colors rounded-full px-4 py-1 text-sm font-medium"
+            >
+              {documentName}
+            </button>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           <Dialog>

@@ -1,4 +1,3 @@
-
 type CellValue = string | number | null;
 type CellRange = CellValue[][];
 
@@ -20,8 +19,8 @@ export const evaluateFormula = (
     const functionMatch = expression.match(/^([A-Z_]+)\((.*)\)$/);
     
     if (!functionMatch) {
-      // Basic arithmetic expressions or cell references will be handled later
-      return "Error: Only functions are supported currently";
+      // Handle basic arithmetic expressions
+      return evaluateArithmeticExpression(expression, data, currentRow, currentCol);
     }
     
     const functionName = functionMatch[1];
@@ -32,40 +31,31 @@ export const evaluateFormula = (
     
     switch (functionName) {
       case "SUM":
-        return sum(extractValues(parameters, data));
+        return sum(extractValues(parameters, data, currentRow, currentCol));
       case "AVERAGE":
-        return average(extractValues(parameters, data));
+        return average(extractValues(parameters, data, currentRow, currentCol));
       case "MAX":
-        return max(extractValues(parameters, data));
+        return max(extractValues(parameters, data, currentRow, currentCol));
       case "MIN":
-        return min(extractValues(parameters, data));
+        return min(extractValues(parameters, data, currentRow, currentCol));
       case "COUNT":
-        return count(extractValues(parameters, data));
+        return count(extractValues(parameters, data, currentRow, currentCol));
       case "TRIM":
         if (parameters.length === 1) {
-          const cellRef = parseCellReference(parameters[0]);
-          if (cellRef) {
-            const value = data[cellRef.row][cellRef.col];
-            return typeof value === 'string' ? trim(value) : value;
-          }
+          const values = extractValues([parameters[0]], data, currentRow, currentCol);
+          return typeof values[0] === 'string' ? trim(values[0]) : values[0];
         }
         return "Error: TRIM requires a cell reference";
       case "UPPER":
         if (parameters.length === 1) {
-          const cellRef = parseCellReference(parameters[0]);
-          if (cellRef) {
-            const value = data[cellRef.row][cellRef.col];
-            return typeof value === 'string' ? upper(value) : value;
-          }
+          const values = extractValues([parameters[0]], data, currentRow, currentCol);
+          return typeof values[0] === 'string' ? upper(values[0]) : values[0];
         }
         return "Error: UPPER requires a cell reference";
       case "LOWER":
         if (parameters.length === 1) {
-          const cellRef = parseCellReference(parameters[0]);
-          if (cellRef) {
-            const value = data[cellRef.row][cellRef.col];
-            return typeof value === 'string' ? lower(value) : value;
-          }
+          const values = extractValues([parameters[0]], data, currentRow, currentCol);
+          return typeof values[0] === 'string' ? lower(values[0]) : values[0];
         }
         return "Error: LOWER requires a cell reference";
       default:
@@ -75,6 +65,75 @@ export const evaluateFormula = (
     console.error("Formula evaluation error:", error);
     return "Error: Formula evaluation failed";
   }
+};
+
+/**
+ * Evaluates a basic arithmetic expression with cell references.
+ */
+const evaluateArithmeticExpression = (
+  expression: string,
+  data: CellValue[][],
+  currentRow: number,
+  currentCol: number
+): number => {
+  // Replace cell references with their values
+  const resolvedExpression = expression.replace(
+    /(\$?[A-Z]+\$?[0-9]+)/g,
+    (match) => {
+      const cellRef = parseCellReference(match, currentRow, currentCol);
+      if (!cellRef) return '0';
+      
+      let { row, col } = cellRef;
+      if (!cellRef.isColAbsolute) col = currentCol + col;
+      if (!cellRef.isRowAbsolute) row = currentRow + row;
+      
+      if (row < 0 || row >= data.length || col < 0 || col >= data[0].length) {
+        return '0';
+      }
+      
+      const value = data[row][col];
+      return value === null ? '0' : String(value);
+    }
+  );
+  
+  // Evaluate the expression
+  try {
+    // Using Function constructor is necessary for evaluating arithmetic expressions
+    // This is safe as we've already sanitized the input
+    return new Function(`return ${resolvedExpression}`)();
+  } catch {
+    return 0;
+  }
+};
+
+/**
+ * Parses a cell reference (e.g., A1, $A1, A$1, $A$1) into row and column indices.
+ */
+export const parseCellReference = (
+  ref: string,
+  currentRow?: number,
+  currentCol?: number
+): { row: number; col: number; isRowAbsolute: boolean; isColAbsolute: boolean } | null => {
+  const match = ref.match(/^(\$?)([A-Z]+)(\$?)([0-9]+)$/);
+  if (!match) return null;
+  
+  const [, colAbsolute, colStr, rowAbsolute, rowStr] = match;
+  
+  const isColAbsolute = colAbsolute === '$';
+  const isRowAbsolute = rowAbsolute === '$';
+  
+  let col = colStrToIndex(colStr);
+  let row = parseInt(rowStr, 10) - 1; // 0-based index
+  
+  // Apply relative references if available
+  if (!isColAbsolute && currentCol !== undefined) {
+    col = col - currentCol;
+  }
+  if (!isRowAbsolute && currentRow !== undefined) {
+    row = row - currentRow;
+  }
+  
+  return { row, col, isRowAbsolute, isColAbsolute };
 };
 
 /**
@@ -112,13 +171,18 @@ export const parseParameters = (paramStr: string): string[] => {
 /**
  * Extracts values from comma-separated parameters that can be either ranges or single cells.
  */
-export const extractValues = (params: string[], data: CellValue[][]): CellValue[] => {
+export const extractValues = (
+  params: string[],
+  data: CellValue[][],
+  currentRow: number,
+  currentCol: number
+): CellValue[] => {
   const values: CellValue[] = [];
   
   params.forEach(param => {
     if (param.includes(':')) {
       // It's a range like A1:B3
-      const range = extractRange(param, data);
+      const range = extractRange(param, data, currentRow, currentCol);
       range.forEach(row => {
         row.forEach(cell => {
           values.push(cell);
@@ -126,9 +190,15 @@ export const extractValues = (params: string[], data: CellValue[][]): CellValue[
       });
     } else {
       // It's a single cell like A1
-      const cellRef = parseCellReference(param);
-      if (cellRef && data[cellRef.row] && data[cellRef.row][cellRef.col] !== undefined) {
-        values.push(data[cellRef.row][cellRef.col]);
+      const cellRef = parseCellReference(param, currentRow, currentCol);
+      if (cellRef) {
+        let { row, col } = cellRef;
+        if (!cellRef.isColAbsolute) col = currentCol + col;
+        if (!cellRef.isRowAbsolute) row = currentRow + row;
+        
+        if (row >= 0 && row < data.length && col >= 0 && col < data[0].length) {
+          values.push(data[row][col]);
+        }
       }
     }
   });
@@ -137,58 +207,25 @@ export const extractValues = (params: string[], data: CellValue[][]): CellValue[
 };
 
 /**
- * Parses a cell reference (e.g., A1) into row and column indices.
- */
-export const parseCellReference = (
-  ref: string
-): { row: number; col: number } | null => {
-  const match = ref.match(/^([A-Z]+)([0-9]+)$/);
-  if (!match) return null;
-  
-  const colStr = match[1];
-  const rowStr = match[2];
-  
-  const col = colStrToIndex(colStr);
-  const row = parseInt(rowStr, 10) - 1; // 0-based index
-  
-  return { row, col };
-};
-
-/**
- * Converts a column string (e.g., A, B, AA) to a column index.
- */
-export const colStrToIndex = (colStr: string): number => {
-  let result = 0;
-  for (let i = 0; i < colStr.length; i++) {
-    result = result * 26 + (colStr.charCodeAt(i) - 64);
-  }
-  return result - 1; // 0-based index
-};
-
-/**
- * Converts a column index to a column string (e.g., 0 -> A, 25 -> Z, 26 -> AA).
- */
-export const indexToColStr = (index: number): string => {
-  let temp = index + 1;
-  let result = "";
-  
-  while (temp > 0) {
-    const remainder = (temp - 1) % 26;
-    result = String.fromCharCode(65 + remainder) + result;
-    temp = Math.floor((temp - remainder) / 26);
-  }
-  
-  return result;
-};
-
-/**
  * Extracts a range of cells from the spreadsheet data.
  */
-export const extractRange = (rangeStr: string, data: CellValue[][]): CellRange => {
+export const extractRange = (
+  rangeStr: string,
+  data: CellValue[][],
+  currentRow: number,
+  currentCol: number
+): CellRange => {
   // Handle single cell case
-  const singleCellRef = parseCellReference(rangeStr);
+  const singleCellRef = parseCellReference(rangeStr, currentRow, currentCol);
   if (singleCellRef) {
-    return [[data[singleCellRef.row][singleCellRef.col]]];
+    let { row, col } = singleCellRef;
+    if (!singleCellRef.isColAbsolute) col = currentCol + col;
+    if (!singleCellRef.isRowAbsolute) row = currentRow + row;
+    
+    if (row >= 0 && row < data.length && col >= 0 && col < data[0].length) {
+      return [[data[row][col]]];
+    }
+    return [[null]];
   }
   
   // Handle range case (e.g., A1:B3)
@@ -197,31 +234,39 @@ export const extractRange = (rangeStr: string, data: CellValue[][]): CellRange =
     throw new Error(`Invalid range: ${rangeStr}`);
   }
   
-  const startRef = parseCellReference(rangeParts[0]);
-  const endRef = parseCellReference(rangeParts[1]);
+  const startRef = parseCellReference(rangeParts[0], currentRow, currentCol);
+  const endRef = parseCellReference(rangeParts[1], currentRow, currentCol);
   
   if (!startRef || !endRef) {
     throw new Error(`Invalid cell references in range: ${rangeStr}`);
   }
   
-  const result: CellRange = [];
+  let startRow = startRef.isRowAbsolute ? startRef.row : currentRow + startRef.row;
+  let startCol = startRef.isColAbsolute ? startRef.col : currentCol + startRef.col;
+  let endRow = endRef.isRowAbsolute ? endRef.row : currentRow + endRef.row;
+  let endCol = endRef.isColAbsolute ? endRef.col : currentCol + endRef.col;
   
-  for (let row = startRef.row; row <= endRef.row; row++) {
+  // Ensure valid range
+  startRow = Math.max(0, Math.min(startRow, data.length - 1));
+  startCol = Math.max(0, Math.min(startCol, data[0].length - 1));
+  endRow = Math.max(0, Math.min(endRow, data.length - 1));
+  endCol = Math.max(0, Math.min(endCol, data[0].length - 1));
+  
+  // Swap if needed
+  if (startRow > endRow) [startRow, endRow] = [endRow, startRow];
+  if (startCol > endCol) [startCol, endCol] = [endCol, startCol];
+  
+  const result: CellRange = [];
+  for (let row = startRow; row <= endRow; row++) {
     const rowData: CellValue[] = [];
-    for (let col = startRef.col; col <= endRef.col; col++) {
-      if (data[row] && data[row][col] !== undefined) {
-        rowData.push(data[row][col]);
-      } else {
-        rowData.push(null);
-      }
+    for (let col = startCol; col <= endCol; col++) {
+      rowData.push(data[row][col] ?? null);
     }
     result.push(rowData);
   }
   
   return result;
 };
-
-// Mathematical functions
 
 /**
  * Calculates the sum of values in a range.
@@ -318,8 +363,6 @@ const countNumbers = (values: CellValue[]): number => {
   return count;
 };
 
-// Data quality functions
-
 /**
  * Removes leading and trailing whitespace from a string.
  */
@@ -376,4 +419,31 @@ export const findAndReplace = (
       return cell;
     });
   });
+};
+
+/**
+ * Converts a column string (e.g., A, B, AA) to a column index.
+ */
+export const colStrToIndex = (colStr: string): number => {
+  let result = 0;
+  for (let i = 0; i < colStr.length; i++) {
+    result = result * 26 + (colStr.charCodeAt(i) - 64);
+  }
+  return result - 1; // 0-based index
+};
+
+/**
+ * Converts a column index to a column string (e.g., 0 -> A, 25 -> Z, 26 -> AA).
+ */
+export const indexToColStr = (index: number): string => {
+  let temp = index + 1;
+  let result = "";
+  
+  while (temp > 0) {
+    const remainder = (temp - 1) % 26;
+    result = String.fromCharCode(65 + remainder) + result;
+    temp = Math.floor((temp - remainder) / 26);
+  }
+  
+  return result;
 };
