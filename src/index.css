@@ -1,92 +1,78 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 125 40% 98%;
+    --foreground: 240 10% 3.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 10% 3.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 355 100% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 140 30% 96%;
+    --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 140 20% 96%;
+    --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 142 50% 90%;
+    --accent-foreground: 240 5.9% 10%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
+    --border: 120 5% 88%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 142 76% 36%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 20 14.3% 4.1%;
+    --foreground: 0 0% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 24 9.8% 10%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 142 70% 50%;
+    --primary-foreground: 144 80% 98%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 85.7% 97.3%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 142 76% 36%;
   }
 }
 
@@ -94,8 +80,121 @@
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
+}
+
+@layer components {
+  .spreadsheet-container {
+    height: calc(100vh - 2rem);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .formula-bar {
+    @apply bg-sheet-toolbar px-2 py-1 flex items-center border-b border-sheet-border;
+    height: 40px;
+  }
+  
+  .toolbar {
+    @apply bg-sheet-toolbar px-2 py-1 flex items-center gap-2 border-b border-sheet-border;
+    height: 44px;
+  }
+  
+  .spreadsheet-header {
+    @apply bg-sheet-header px-1 flex items-center border-b border-sheet-border;
+    height: 36px;
+  }
+  
+  .spreadsheet-grid {
+    @apply flex-1 overflow-auto relative bg-sheet-grid;
+  }
+  
+  .col-header {
+    @apply bg-sheet-header sticky top-0 text-center border-b border-r border-sheet-border text-xs font-medium text-sheet-lightText flex items-center justify-center select-none;
+    height: 24px;
+    min-width: 64px;
+    max-width: 64px;
+    z-index: 20;
+  }
+  
+  .row-header {
+    @apply bg-sheet-header sticky left-0 text-center border-r border-b border-sheet-border text-xs font-medium text-sheet-lightText flex items-center justify-center select-none;
+    width: 40px;
+    min-height: 24px;
+    z-index: 20;
+  }
+  
+  .cell {
+    @apply border-r border-b border-sheet-border outline-none px-2 overflow-hidden text-sm;
+    height: 24px;
+    min-width: 64px;
+    max-width: 64px;
+    line-height: 24px;
+  }
+  
+  .cell:focus, .cell.selected {
+    @apply bg-sheet-selected;
+    box-shadow: inset 0 0 0 2px rgba(25, 118, 210, 0.5);
+  }
+  
+  .cell:hover:not(:focus):not(.selected) {
+    @apply bg-sheet-hover;
+  }
+  
+  .cell.editing {
+    @apply bg-white;
+    box-shadow: inset 0 0 0 2px rgba(25, 118, 210, 0.8);
+  }
+  
+  .corner-header {
+    @apply bg-sheet-header sticky left-0 top-0 border-r border-b border-sheet-border;
+    width: 40px;
+    height: 24px;
+    z-index: 30;
+  }
+  
+  .drag-handle {
+    @apply absolute bottom-0 right-0 w-4 h-4 cursor-col-resize z-10;
+  }
+  
+  .resizer {
+    @apply absolute top-0 right-0 w-1 h-full cursor-col-resize z-10 hover:bg-blue-500;
+  }
+  
+  .toolbar-button {
+    @apply rounded p-1 hover:bg-black/5 transition-colors flex items-center justify-center;
+    height: 28px;
+    width: 28px;
+  }
+  
+  .toolbar-button.active {
+    @apply bg-sheet-active;
+  }
+  
+  .toolbar-divider {
+    @apply h-5 w-px bg-sheet-border mx-1;
+  }
+  
+  .toolbar-select {
+    @apply text-sm bg-transparent border border-sheet-border rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary;
+    height: 28px;
+  }
+}
+
+.tooltip {
+  @apply absolute z-50 px-2 py-1 text-xs bg-black text-white rounded shadow-lg;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.transition-cell {
+  transition: background-color 0.15s ease;
+}
+
+.formula-highlight {
+  @apply bg-blue-100 text-blue-800;
 }

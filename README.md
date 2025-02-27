@@ -1,69 +1,55 @@
-# Welcome to your Lovable project
 
-## Project info
+# Sheetopia - Spreadsheet Application
 
-**URL**: https://lovable.dev/projects/6a1549e8-ca74-4e57-b2ce-7174f23ba6e5
+A web-based spreadsheet application that mimics the core functionalities of Google Sheets, with a focus on mathematical and data quality functions.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- Complete spreadsheet interface with rows, columns, and cells
+- Formula support with mathematical functions (SUM, AVERAGE, MAX, MIN, COUNT)
+- Data quality functions (TRIM, UPPER, LOWER)
+- Cell formatting options (bold, italic, text color, background color)
+- Add, delete, and resize rows and columns
+- Keyboard navigation for spreadsheet cells
+- Clean, minimalist UI with a light green theme
 
-**Use Lovable**
+## Technologies Used
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6a1549e8-ca74-4e57-b2ce-7174f23ba6e5) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
 - React
-- shadcn-ui
+- TypeScript
 - Tailwind CSS
+- Vite
+- shadcn-ui components
 
-## How can I deploy this project?
+## Mathematical Functions
 
-Simply open [Lovable](https://lovable.dev/projects/6a1549e8-ca74-4e57-b2ce-7174f23ba6e5) and click on Share -> Publish.
+The application supports the following mathematical functions:
 
-## I want to use a custom domain - is that possible?
+1. SUM: Calculates the sum of a range of cells. Example: `=SUM(A1:A10)`
+2. AVERAGE: Calculates the average of a range of cells. Example: `=AVERAGE(B1:B5)`
+3. MAX: Returns the maximum value from a range of cells. Example: `=MAX(C1:C20)`
+4. MIN: Returns the minimum value from a range of cells. Example: `=MIN(D1:D20)`
+5. COUNT: Counts the number of cells containing numerical values in a range. Example: `=COUNT(A1:D10)`
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## Data Quality Functions
+
+The application also includes these data quality functions:
+
+1. TRIM: Removes leading and trailing whitespace from a cell. Example: `=TRIM(A1)`
+2. UPPER: Converts the text in a cell to uppercase. Example: `=UPPER(B3)`
+3. LOWER: Converts the text in a cell to lowercase. Example: `=LOWER(C5)`
+
+## Getting Started
+
+1. Clone this repository
+2. Install dependencies with `npm install`
+3. Start the development server with `npm run dev`
+4. Open your browser to the URL shown in the terminal
+
+## Future Enhancements
+
+- REMOVE_DUPLICATES function for removing duplicate rows
+- FIND_AND_REPLACE functionality
+- Support for more complex formulas and cell referencing
+- Save and load spreadsheet functionality
+- Data visualization capabilities (charts, graphs)
